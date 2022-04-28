@@ -1,9 +1,13 @@
 # Using ExpressRoute Direct for customers with high security needs and in highly regulated industries
 
 [Introduction](#introduction)
+
 [Isolate traffic](#isolate-traffic)
+
 [Encryption](#encryption)
+
 [Guarantee bandwidth for applications and environments](#guarantee-bandwidth-for-applications-and-environments)
+
 [Solution-architecture for customers in a highly regulated industry](#solution-architecture-for-customers-in-a-highly-regulated-industry)
 <!---
 [High availability and geo redundancy]
@@ -27,10 +31,11 @@ As a conclusion, I'll bring pieces together to show how customers in a highly re
 A common request is to (physically) isolate traffic between different environments. Eg. Dev environment should be (physically) isolated from prod environment.
 Although Microsoft encourages customers to not adopt these on-premises practices to the cloud and instead use a more agile cloud approach, like usage of Hub and Spoke with Azure Firewall in the Hub, or use native features in vWAN for traffic isolation, customers might have regulatory requirements or might be mandated by their InfoSec policies to strictly isolate environments in the cloud and between on-premises and the cloud.
 There are multiple ways to achieve this, let me explain the most common ones:
-#####Build IPSec tunnels towards each Environment
+##### Build IPSec tunnels towards each Environment
 IPSec VPN tunnels are built between OnPremises VPN devices and Azure virtual network VPN gateway. Whether Internet connectivity, Microsoft Azure Peering Service or Microsoft Peering on top of an ExpressRoute is used between OnPremises and Azure virtual network VPN gateway, depends on the requirements that exist in regards to latency, jitter and also available bandwidth on the path.
 
-<img src="resources/Isolation-VPN-Tunnel.png" width=800>
+<img src="Resources/Isolation-VPN-Tunnel.png" width=800>
+
 ##### *Pros:*
 - Encryption between OnPremises Firewall / VPN Device and Azure Virtual Network Gateway
 - Azure native approach
@@ -39,11 +44,12 @@ IPSec VPN tunnels are built between OnPremises VPN devices and Azure virtual net
 - Complexity
 - Missing insights
 - Bandwidth limitations (based on the VPN device / VPN gateway you're using)
-#####Build Overlay network to each environment
+##### Build Overlay network to each environment
 This is a similar approach to the one before, but instead of native Azure VPN gateways, 3rd party NVAs will be used.
 The difference is the feature set that 3rd party NVAs can offer. These features can reach from SDWAN (eg. multiple links, path selection), up to deep insights into communication patterns and traffic. Also multicloud capabilities, operations and troubleshooting are important additions. Vendors are for example Aviatrix, Fortinet and Palo Alto.
 
-<img src="resources/Isolation-Overlay.png" width=800></br>
+<img src="Resources/Isolation-Overlay.png" width=800></br>
+
 ##### *Pros:*
 - Flexibility
 - Scalability (depending on Architecture)
@@ -56,7 +62,8 @@ This architecture builds on isolation with dedicated ExpressRoutes per environme
 For every environment, a dedicated ExpressRoute Circuit is used, which in turn means, isolation will happen on layer-2 (still L3 will be used for routing and this is not a L2 extension/stretch!).
 Besides the physical isolation, also a dedicated bandwidth is given for each ExpressRoute. This will be discussed later in this document.
 
-<img src="resources/Isolation-Cloudexchange.png" width=1200></br>
+<img src="Resources/Isolation-Cloudexchange.png" width=1200></br>
+
 ##### *Pros:*
 - Small bandwidth chunks available (50Mbit/s)
 - Dedicated bandwith
@@ -71,24 +78,24 @@ This is again a variant, in this case of the previous architecture, and it combi
 ExpressRoute Direct is like a container for ExpressRoute circuits. When you create an ExpressRoute Direct, you connect directly to Microsoft wihtin an ExpressRoute peering location (Microsoft will issue a so called LoA (Letter of Authorization) to establish a direct CrossConnect in the peering location to Microsofts Enterprise Edge Routers). There's no connectivity provider inbetween, you become the ExpressRoute provider.
 After you've established the physical connectivity to Microsofts Enterprise Edge Routers, changed the "admin state" to enabled and the your fiber is lit, you can start to create ExpressRoute Circuits on top of the ExpressRoute Direct.
 
-<img src="resources/Isolation-ERDirect.png" width=1200></br>
+<img src="Resources/Isolation-ERDirect.png" width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - Encryption - there's a separate topic later in this document
 - Bandwidth - up to 100 Gbit/s
 - Flexibility
 - Azure native approach
 - Direct connection to Microsoft
-#####*Cons:*
+##### *Cons:*
 - Cost
 - Complexity
 
-####Summary
+#### Summary
 As shown, there are different ways to isolate traffic. Depending on customers needs, 
 
 ---
 
-##Encryption
+## Encryption
 A common request is to encrypt the traffic between customers network and Microsoft Azure.
 While general advice is to use only encrypted protocols, customers often face challenges ensuring that they're only using encrypted protocols or simply using protocols that doesn't offer built-in encryption capabilities.
 Using a VPN or encryption in the underlay is a common practice. Still there are a couple of ways to do this.
@@ -97,17 +104,17 @@ Below are the most common ways to encrypt traffic via VPN or the underlying infr
 :exclamation: Before moving on, let me share a word on encryption on the Microsoft backbone. Microsoft encrypts all data in transit that leaves their datacenters and crosses public grounds. This is publicly disclosed and written here: https://docs.microsoft.com/en-us/azure/security/fundamentals/encryption-overview#encryption-of-data-in-transit . 
 
 
-####IPSec VPN over Internet
+#### IPSec VPN over Internet
 The most common approach used to encrypt traffic is using an IPSec tunnel. While this is a low hanging fruit, since you can create the tunnel over the internet, it comes with limitations like limited bandwidth (although Microsoft VPN gateways support up to 10 GBit/s, it's only reached by using multiple tunnels and using BGP with ECMP to load balance the traffic across the tunnels. Also, due to the fact that the IPSec tunnel limit is 1 / 1,25 Gbit/s, your single flow performance is limited by this) and IPSec overhead.
 If you use a 3rd party NVA, you might overcome this limit and get a higher throughput.
 
-<img src="resources/encryption-Internet-VPN.png" width=1200></br>
+<img src="Resources/encryption-Internet-VPN.png" width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - Fast adoption when using Internet and Azure VPN gateways
 - Failover options with active/active GWs and BGP
 - Cost
-#####*Cons:*
+##### *Cons:*
 - Limited bandwidth / tunnel performance
 - Uses public Internet for transport -> might have an impact on bandwidth and / or latency. No SLA
 - IPSec compatibility with existing devices
@@ -115,16 +122,16 @@ If you use a 3rd party NVA, you might overcome this limit and get a higher throu
 - Troubleshooting of IPSec
 - Key rotation complexity (if key rotation is required, which is likely in highly regulated industries)
 
-####IPSec VPN over Microsoft peering on ExpressRoute
+#### IPSec VPN over Microsoft peering on ExpressRoute
 In this architecture private connectivity to Microsoft using ExpressRoute and Microsoft peering is used with an IPSec tunnel on top of it. So you'll get the advantages of private connectivity to Microsoft using ExpressRoute, like dedicated bandwidth (of transport, IPSec tunnel limits stay the same).
 
-<img src="resources/encryption-VPN-ER-mspeering.png" width=1200></br>
+<img src="Resources/encryption-VPN-ER-mspeering.png" width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - Failover options with active/active GWs and BGP
 - Dedicated private connectivity
 - Bandwidth
-#####*Cons:*
+##### *Cons:*
 - Limited bandwidth / tunnel performance
 - IPSec compatibility with existing devices
 - ExpressRoute Microsoft Peering must be configured
@@ -132,41 +139,41 @@ In this architecture private connectivity to Microsoft using ExpressRoute and Mi
 - Troubleshooting of IPSec
 - Key rotation complexity (if key rotation is required, which is likely in highly regulated industries)
 
-####IPSec VPN over private peering on ExpressRoute
+#### IPSec VPN over private peering on ExpressRoute
 While Microsoft peering on ExpressRoute gives you great flexibility regarding access to Azure PaaS, it comes with a higher complexity (eg. NAT) and also with some requirements (eg. need for public IPv4 IPs that are owned by the company, or that the company is allowed to use, and that are not propagated to the Internet) that makes it sometimes hard to implement.
 Microsoft implemented the option to use an Azure VPN Gateway behind a Microsoft ExpressRoute Gateway over the private peering (which is quite easy to configure).
 
-<img src="resources/encryption-VPN-ER-privatepeering.png" width=1200></br>
+<img src="Resources/encryption-VPN-ER-privatepeering.png" width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - Failover options with active/active GWs and BGP
 - Dedicated private connectivity
 - Bandwidth
-#####*Cons:*
+##### *Cons:*
 - Limited bandwidth / tunnel performance
 - IPSec compatibility with existing devices
 - Complexity (multiple tunnels, BGP, ECMP)
 - Troubleshooting of IPSec
 - Key rotation complexity (if key rotation is required, which is likely in highly regulated industries)
 
-####Variants of above encryption options
+#### Variants of above encryption options
 Both architectures might benefit from a substitution of Microsoft VPN gateways with 3rd party NVAs. These solutions might come with a higher cost, so you need to take a closer look at the cost associated with 3rd parties. Nevertheless, depending on your requirements regarding troubleshooting, throughput and ease of use (complexity for operation of NVAs in Azure might be higher, so compare solutions carefully), you might find a good option here.
 
-####End-to-End IPSec encryption between hosts (in combination with ExpressRoute and private peering)
+#### End-to-End IPSec encryption between hosts (in combination with ExpressRoute and private peering)
 Customers looking for truly end-to-end encryption, should think about building IPSec tunnels between hosts. While this is the most complex architecture, and for sure the one with the highest operational overhead, especially when you have different operating systems, it's the most secure approach since you don't need to worry about any encryption on the "road".
 
-<img src="resources/encryption-end-to-end.png" width=1200></br>
+<img src="Resources/encryption-end-to-end.png" width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - True end-to-end encryption
 - Scalability due to distribution of encryption
-#####*Cons:*
+##### *Cons:*
 - Complexity
 - Interop between different operating systems IPSec implementation
 - Management at scale if using different operating systems
 
 
-####L2 Encryption on ExpressRoute Direct with MACSec (802.1AE)
+#### L2 Encryption on ExpressRoute Direct with MACSec (802.1AE)
 When it comes to high speed encryption, all of the above mentioned methods suffer from limited bandwidth and additional overhead.
 Especially when it comes to IPSec encryption beyond 10G, solutions get quite expensive and available virtual appliances in the cloud are rare and still limited.
 Looking at the available options, Microsoft decided to offer MACSec (802.1az) encryption on ExpressRoute Direct. MACSec works on L2 and offers unmatched, near line rate, performance, also with 100G bandwidth. In addition, it has a good interoperability (Microsoft just added some configuration options to be compatible with solutions that doesn't offer flexibility in configuration).
@@ -175,9 +182,9 @@ In this case, encryption is "divided" into two pieces. Customer encrypts traffic
 
 
 
-<img src="resources/encryption-erdirect-macsec.png " width=1200></br>
+<img src="Resources/encryption-erdirect-macsec.png " width=1200></br>
 
-#####*Pros:*
+##### *Pros:*
 - Near line-rate performance, even with 100Gbit/s
 - Minimal protocol overhead
 - Scale
@@ -186,18 +193,18 @@ In this case, encryption is "divided" into two pieces. Customer encrypts traffic
 - Complexity is lower than with IPSec and it's 
 - Interoperability of different vendors
 - Flexibility of ExpressRoute Direct (see section above on "ExpressRoute on top of ExpressRoute Direct")
-#####*Cons:*
+##### *Cons:*
 - Cost for ExpressRoute Direct
 
 ----
 
-###Guarantee bandwidth for applications and environments
+### Guarantee bandwidth for applications and environments
 Often customers want or need to dedicate a certain bandwidth to applications or environments. There are multiple reasons for this, for example, they want to ensure that the applications or environments doesn't interfere with each other and a single environment or application can't bring down other environments. Another example is the usage of AVS, where you want to have a dedicated bandwidth to ensure smooth migration of workloads without impacting the rest of your workloads running in Azure.
 Since Azure, like other cloud providers, doesn't support natively QoS, rate limiting or traffic shaping, there's no way to achieve the requirement to limit the bandwidth.
 Of course, you can build an overlay with 3rd party appliances that support Qos and / or rate limiting and traffic shaping, but let's look a little bit closer into ways that use Azure native capabilities to guarantee bandwidth for applications.
 :exclamation: Application or environment is used as a synonym for a service that is running in a virtual network (VNet) in Azure. So eg. when talking about a PROD Environment, this is the synonym for applications that are running in the VNet (or VNets if Hub & Spoke is used).
 
-####IPSec VPN
+#### IPSec VPN
 Let's start with the traffic path when using an IPSec VPN.
 If you look at the traffic path between On-Premises and Azure, there are two components that are capable of rate limiting and traffic shaping. First the VPN Device On-Premises can be configured for traffic shaping, if it offers the option. Depending on the device you use and the feature set it offers, you have a granular control on the traffic.
 The second option to provide some kind of rate limiting, is the VPN gateway in Azure. The VPN gateway in Azure comes in different "sizes", that support different bandwidth.
@@ -215,9 +222,9 @@ VPN Gateway sizes and bandwidth (excerpt, see full table [here](#https://docs.mi
 In the example below, you can see that the PROD environment is using a VPN GW of type "VpnGW4" which offers 5 Gbit/s encryption performance, while the DEV environment uses a "VpnGW2", which offers only 1.25 Gbit/s encryption performance.
 So the Bandwidth for each environment is limited by using different VPN GW types.
 
-<img src="resources/bandwidth-vpn.png" width=1200></br>
+<img src="Resources/bandwidth-vpn.png" width=1200></br>
 
-####ExpressRoute
+#### ExpressRoute
 The second option to natively limit bandwidth between OnPremises and Azure, is to use ExpressRoute.
 Since ExpressRoute offers different bandwidth, you can use that to rate limit the traffic and guarantee applications or environments a certain bandwidth.
 Bandwidth of ExpressRoute circuit is rate limited to the configured ExpressRoute Circuit size on provider router or on customer CPE (in case of ExpressRoute Direct).
@@ -240,15 +247,15 @@ The second option to limit the bandwidth is again the virtual network gateway, b
 
 :exclamation: When you enable FastPath on the UltraPerformance/ErGw3Az, gateways are bypassed and thus bandwidth is not limited :exclamation:
 </br>
-<img src="resources/bandwidth-expressroute.png" width=1200></br>
+<img src="Resources/bandwidth-expressroute.png" width=1200></br>
 
-####Summary on bandwidth limitation or guaranteeing bandwidth
+#### Summary on bandwidth limitation or guaranteeing bandwidth
 As you can see there are some solutions to control bandwidth between OnPremises and Azure.
 Nevertheless, not all solutions offer all options (or depend on your existing infrastructure), while ExpressRoute gateways only offer a limitation of ingress traffic towards VNet.
 Leaving this, the best option is to use ExpressRoute circuits to limit the bandwidth and guarantee that the existing bandwidth is shared according to your needs and configuration.
 
 ----
-###Solution-architecture for customers in a highly regulated industry
+### Solution-architecture for customers in a highly regulated industry
 Now that you've learned about different options that fulfil requirements regarding isolating traffic, encryption and guaranteeing bandwidth for certain environments or applications, let's bring this all together to build an architecture that fulfils the mentioned reuqirements for a customer in a highly requlated industry.
 
 The below architecture builds on ExpressRoute Direct and offers:
@@ -259,7 +266,7 @@ MACSec is the foundation for high-speed encryption on layer 2. It's also easy to
 3. Guaranteeing bandwidth
 Since there are no ways to limit bandwidth or do traffic shaping in Azure, best option is to use ExpressRoute Circuits of different sizes and use the size you need. In the example below, all PROD environments have a bandwidth of 5GBit/s and all non-prod or DEV environments have a bandwidth of 2Gbit/s. Since you can overprovision bandwidth on an ExpressRoute Direct with a ratio of 2:1, there's still 6Gbit/s left on the ExpressRoute Direct in the example below.
 
-<img src="resources/solution-summary.png" width=1200></br>
+<img src="Resources/solution-summary.png" width=1200></br>
 
 <!---
 VLAN Tagging 
