@@ -62,7 +62,7 @@ This architecture builds on isolation with dedicated ExpressRoutes per environme
 For every environment, a dedicated ExpressRoute Circuit is used, which in turn means, isolation will happen on layer-2 (still L3 will be used for routing and this is not a L2 extension/stretch!).
 Besides the physical isolation, also a dedicated bandwidth is given for each ExpressRoute. This will be discussed later in this document.
 
-<img src="Resources/Isolation-Cloudexchange.png" width=1200></br>
+<img src="Resources/Isolation-CloudExchange.png" width=1200></br>
 
 ##### *Pros:*
 - Small bandwidth chunks available (50Mbit/s)
