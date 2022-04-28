@@ -1,4 +1,4 @@
-#Using ExpressRoute Direct for customers with high security needs and in highly regulated industries
+# Using ExpressRoute Direct for customers with high security needs and in highly regulated industries
 
 [Introduction](#introduction)
 [Isolate traffic](#isolate-traffic)
@@ -16,25 +16,25 @@
 [Limits]
 --->
 
-##Introduction
+## Introduction
 Customers with high security needs or in regulated industries ask how they can meet their requirements for traffic isolation, encryption and dedicated bandwidth when connecting to Azure.
 Based on my experience in many ExpressRoute Direct engagements with customers, I wanted to share my findings how ExpressRoute Direct can help to fulfil their requirements.
 As a conclusion, I'll bring pieces together to show how customers in a highly regulated industry uses ExpressRoute Direct to fulfil their needs.
 
 ---
 
-##Isolate traffic 
+## Isolate traffic 
 A common request is to (physically) isolate traffic between different environments. Eg. Dev environment should be (physically) isolated from prod environment.
 Although Microsoft encourages customers to not adopt these on-premises practices to the cloud and instead use a more agile cloud approach, like usage of Hub and Spoke with Azure Firewall in the Hub, or use native features in vWAN for traffic isolation, customers might have regulatory requirements or might be mandated by their InfoSec policies to strictly isolate environments in the cloud and between on-premises and the cloud.
 There are multiple ways to achieve this, let me explain the most common ones:
 #####Build IPSec tunnels towards each Environment
 IPSec VPN tunnels are built between OnPremises VPN devices and Azure virtual network VPN gateway. Whether Internet connectivity, Microsoft Azure Peering Service or Microsoft Peering on top of an ExpressRoute is used between OnPremises and Azure virtual network VPN gateway, depends on the requirements that exist in regards to latency, jitter and also available bandwidth on the path.
 
-<img src="resources/Isolation-VPN-Tunnel.png" width=800></br>
-#####*Pros:*
+<img src="resources/Isolation-VPN-Tunnel.png" width=800>
+##### *Pros:*
 - Encryption between OnPremises Firewall / VPN Device and Azure Virtual Network Gateway
 - Azure native approach
-#####*Cons:*
+##### *Cons:*
 - Cost
 - Complexity
 - Missing insights
@@ -44,29 +44,29 @@ This is a similar approach to the one before, but instead of native Azure VPN ga
 The difference is the feature set that 3rd party NVAs can offer. These features can reach from SDWAN (eg. multiple links, path selection), up to deep insights into communication patterns and traffic. Also multicloud capabilities, operations and troubleshooting are important additions. Vendors are for example Aviatrix, Fortinet and Palo Alto.
 
 <img src="resources/Isolation-Overlay.png" width=800></br>
-#####*Pros:*
+##### *Pros:*
 - Flexibility
 - Scalability (depending on Architecture)
 - Cost (depending on Architecture)
 - Encrpytion (depending on Architecture)
-#####*Cons:*
+##### *Cons:*
 - Cost (depending on Architecture)
-#####Use ExpressRoute per Environment
+##### Use ExpressRoute per Environment
 This architecture builds on isolation with dedicated ExpressRoutes per environment. While customers of course can use multipe ExpressRoutes from a single or multiple providers, using a cloud exchange provider (like DE-CIX, Equinix, InterXion or Megaport) is the most flexible and scalable model.
 For every environment, a dedicated ExpressRoute Circuit is used, which in turn means, isolation will happen on layer-2 (still L3 will be used for routing and this is not a L2 extension/stretch!).
 Besides the physical isolation, also a dedicated bandwidth is given for each ExpressRoute. This will be discussed later in this document.
 
 <img src="resources/Isolation-Cloudexchange.png" width=1200></br>
-#####*Pros:*
+##### *Pros:*
 - Small bandwidth chunks available (50Mbit/s)
 - Dedicated bandwith
 - Limits and Quotas (depending on Architecture)[^1]
 - Azure native approach
-#####*Cons:*
+##### *Cons:*
 - no native encryption available (need to add VPN and/or Overlay on top of ER)
 - Cost
 - Complexity
-#####Use ExpressRoute on top of ExpressRoute Direct
+##### Use ExpressRoute on top of ExpressRoute Direct
 This is again a variant, in this case of the previous architecture, and it combines the flexibility of a cloud exchange with a dedicated connection to Microsoft by using ExpressRoute Direct.
 ExpressRoute Direct is like a container for ExpressRoute circuits. When you create an ExpressRoute Direct, you connect directly to Microsoft wihtin an ExpressRoute peering location (Microsoft will issue a so called LoA (Letter of Authorization) to establish a direct CrossConnect in the peering location to Microsofts Enterprise Edge Routers). There's no connectivity provider inbetween, you become the ExpressRoute provider.
 After you've established the physical connectivity to Microsofts Enterprise Edge Routers, changed the "admin state" to enabled and the your fiber is lit, you can start to create ExpressRoute Circuits on top of the ExpressRoute Direct.
